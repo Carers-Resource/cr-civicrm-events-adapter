@@ -1,0 +1,18 @@
+{
+    "name": "carersresource/civi-events",
+    "autoload": {
+        "psr-4": {
+            "CarersResource\\CiviEvents\\": "src/"
+        }
+    },
+    "authors": [
+        {
+            "name": "Gav Massingham",
+            "email": "gmassingham@carersresource.org"
+        }
+    ],
+    "require": {
+        "vlucas/phpdotenv": "^5.3",
+        "mustache/mustache": "~2.5"
+    }
+}
