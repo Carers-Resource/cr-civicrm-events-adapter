@@ -11,7 +11,9 @@
  * Domain Path: /lang
  */
 
-namespace carersresource\Civi_Events;
+namespace CarersResource\CiviEvents;
+
+use Dotenv\Dotenv as Dotenv;
 
 /**
  * Abort if we're being called directly.
@@ -21,9 +23,10 @@ if (!defined('ABSPATH')) {
 }
 
 
-if (!function_exists('get_home_path')) {
+if (!function_exists('plugin_dir_path')) {
     require_once(dirname(__FILE__) . '/../../../wp-admin/includes/file.php');
 }
 
-$install_dir = \get_home_path();
-require_once($install_dir . 'vendor/autoload.php');
+require_once(\plugin_dir_path(__FILE__) . 'vendor/autoload.php');
+
+Admin::register();
