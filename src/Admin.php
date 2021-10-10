@@ -2,6 +2,8 @@
 
 namespace CarersResource\CiviEvents;
 
+use DateInterval;
+use DateTime;
 use Mustache_Engine;
 use Dotenv\Dotenv;
 
@@ -24,7 +26,7 @@ class Admin
             'loader' => new \Mustache_Loader_FilesystemLoader((\plugin_dir_path(__DIR__)) . 'views'),
         ]);
         $plugin->data = [
-            'title' => 'CIviCRM Events Adapter',
+            'title' => 'CiviCRM Events Adapter',
             'menu_title' => 'CiviCRM Events',
             'menu_slug' => 'civi_events',
             'user_key' => $_ENV['CIVICRM_USER_KEY'],
@@ -62,7 +64,12 @@ class Admin
 
         $site = $_ENV['CIVICRM_URL'];
         $endpoint = '/sites/all/modules/civicrm/extern/rest.php';
-        $query = '?entity=Event&action=get&json=' . \urlencode('{"sequential":1}') . '&api_key=' . $user_key . '&key=' . $site_key;
+        $f = new DateTime();
+        $from_date = $f->format("Y-m-d");
+        $t = $f->add(new DateInterval("P3M"));
+        $to_date = $t->format("Y-m-d");
+        $json = '{"sequential":1,"return":"id,title,summary,description,start_date,end_date,loc_block_id.address_id.street_number,loc_block_id.address_id.street_address,loc_block_id.address_id.city,loc_block_id.address_id.postal_code","start_date":{">=":"' . $from_date . '"},"end_date":{"<=":"' . $to_date . '"},"options":{"limit":0}}';
+        $query = '?entity=Event&action=get&json=' . urlencode($json) . '&api_key=' . $user_key . '&key=' . $site_key;
 
         $url = $site . $endpoint . $query;
 
