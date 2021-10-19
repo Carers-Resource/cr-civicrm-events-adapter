@@ -6,6 +6,7 @@ use DateInterval;
 use DateTime;
 use Mustache_Engine;
 use Dotenv\Dotenv;
+use WP_Error;
 
 class Admin
 {
@@ -52,7 +53,6 @@ class Admin
     public function civi_events_admin_page()
     {
         $tpl = $this->m->loadTemplate('admin'); // loads __DIR__.'/views/admin.mustache';
-        //echo $tpl->render($this->data);
 
         $events_json = $this->data['response'];
         $this->save_an_event($events_json);
@@ -98,19 +98,75 @@ class Admin
 
     private function save_an_event($events_json)
     {
-        $decoded  = \json_decode($events_json, true);
 
-        $event_0_data = $decoded['values'][0];
-        $event_0_data['street'] = $event_0_data['loc_block_id.address_id.street_address'];
-        $event_0_data['town'] = $event_0_data['loc_block_id.address_id.city'];
-        $event_0_data['postcode'] = $event_0_data['loc_block_id.address_id.postal_code'];
+        //update_option('civicrm_event_ids', []);
+
+        $decoded  = \json_decode($events_json, true);
+        $e0 = $decoded['values'][0];
+        $e0['street'] = $e0['loc_block_id.address_id.street_address'];
+        $e0['town'] = $e0['loc_block_id.address_id.city'];
+        $e0['postcode'] = $e0['loc_block_id.address_id.postal_code'];
 
         $tpl = $this->m->loadTemplate('event');
 
-        echo $tpl->render($event_0_data);
+        echo $tpl->render($e0);
 
         echo ("<br/><br/>");
 
-        print_r($event_0_data);
+        print_r(\serialize($e0));
+
+        $md2 = \hash("md2", \serialize(($e0)));
+
+        echo ("<br/><br/>");
+
+        \print_r($md2);
+
+        $known_ids = \get_option('civicrm_event_ids');
+        $modified = false;
+
+        if (\array_key_exists($e0['id'], $known_ids)) {
+            echo '<p>Already added</p>';
+            if ($md2 == $known_ids[$e0['id']]['md2']) {
+                return;
+            }
+            echo ("<br/><br/>");
+            echo ("hash not equal: post modified");
+            echo ("<br><br>");
+            $modified = true;
+        }
+
+        $post_to_add = [
+            'post_title' => $e0['title'],
+            'post_content' => $e0['description'],
+        ];
+
+        if ($modified) {
+            $post_to_add['post_id'] = $known_ids[$e0['id']]['wp_id'];
+        }
+
+        $wp_post_id = new WP_Error($code = 'dummy', 'just a placeholder');
+
+        $wp_post_id = wp_insert_post($post_to_add, true);
+
+
+        if (!\is_wp_error($wp_post_id)) {
+            \update_post_meta($wp_post_id, 'event_from', $e0['start_date']);
+            \update_post_meta($wp_post_id, 'event_to', $e0['end_date']);
+            $known_ids[$e0['id']] = [];
+            $known_ids[$e0['id']]['wp_id'] = $wp_post_id;
+            $known_ids[$e0['id']]['md2'] = $md2;
+            \maybe_serialize($known_ids);
+            \update_option('civicrm_event_ids', $known_ids);
+        }
+
+        print_r($known_ids);
+
+        return;
     }
 }
+
+# f0ce4bf6056eb531a5b4ad55242da548
+
+# 7ff10492c8cc1433a8d8e5352b47cf48
+
+# f1dd368f914ac71e7fc9baa86b243036
