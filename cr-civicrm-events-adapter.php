@@ -29,4 +29,4 @@ if (!function_exists('plugin_dir_path')) {
 
 require_once(\plugin_dir_path(__FILE__) . 'vendor/autoload.php');
 
-Admin::register();
+Plugin::register();

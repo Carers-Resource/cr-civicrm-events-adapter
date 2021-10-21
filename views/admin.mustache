@@ -1,4 +1,9 @@
 <h1>{{ title }}</h1>
 <p>{{ civi_user }}</p>
-
-{{ response }}
+<form action="admin-post.php" method="post">
+    <input type="hidden" name="action" value="civi_events_erase_ids">
+    {{{ clear_nonce }}}
+    <input type="submit" value="Clear IDs">
+</form>
+<h4>Stored IDs:</h4>
+<pre>{{ stored_ids }}</pre>
