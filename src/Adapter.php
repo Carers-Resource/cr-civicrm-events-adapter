@@ -11,8 +11,6 @@ use WP_Error;
 class Adapter
 {
     private static $plugin;
-    private $response;
-    private $ids;
 
     public function __construct()
     {
@@ -24,7 +22,7 @@ class Adapter
             return $plugin;
         }
         $plugin::$adapter = new self();
-        $plugin::$adapter::$plugin = $plugin;
+        self::$plugin = $plugin;
         return $plugin;
     }
 
@@ -37,6 +35,18 @@ class Adapter
         return $events;
     }
 
+    private function process_events()
+    {
+        $response = $this->get_civicrm_events();
+
+        $decoded = json_decode(str_replace('loc_block_id.address_id.', '', $response), true);
+
+        $events = $decoded['values'];
+
+        return array_values((array_filter($events, [$this, 'event_filter'])));
+    }
+
+    private function get_civicrm_events()
     {
         $ch = \curl_init();
 
@@ -72,27 +82,14 @@ class Adapter
         return $response;
     }
 
-    public function process_events()
-    {
-        $response = $this->get_civicrm_events();
-        $this->ids = \get_option("civicrm_event_ids");
-
-        $decoded = json_decode(str_replace('loc_block_id.address_id.', '', $response), true);
-
-        $events = $decoded['values'];
-
-        self::$plugin->events = array_values((array_filter($events, [$this, 'event_filter'])));
-    }
-
-
-    public function event_filter($e)
+    private function event_filter($e)
     {
         return ($this->check_id_unknown($e) || $this->check_hash_no_match($e));
     }
 
     // check_event_in_past checks to see if an event falls in the past
     // and so can be deleted.
-    public function check_event_in_past($e)
+    private function check_event_in_past($e)
     {
         $today = date('Y-m-d');
         $event_end = $e['end_date'];
@@ -100,37 +97,48 @@ class Adapter
     }
 
     // check_id_unknown checks to see if the CiviCRM event ID is new to us
-    public function check_id_unknown($e)
+    private function check_id_unknown($e)
     {
-        return !(\array_key_exists($e['id'], $this->ids));
+        return !(\array_key_exists($e['id'], $this->get_ids()));
     }
 
     // check_hash_no_match returns true if the md2 hash of a given event
     // is different to the one we have stored. If different it means the
     // CiviCRM record has changed. 
-    public function check_hash_no_match($e)
+    private function check_hash_no_match($e)
     {
-        if (\hash("md2", serialize($e)) !== $this->ids[$e['id']]['md2']) {
-            $this->ids[$e['id']]['md2'] = 'dirty';
+        $ids = $this->get_ids();
+        if (\hash("md2", serialize($e)) !== $ids[$e['id']]['md2']) {
+            $ids[$e['id']]['md2'] = 'dirty';
         };
+    }
+
+    private function get_ids()
+    {
+        return \get_option('civicrm_event_ids');
     }
 
     public function save_first_event()
     {
-        $this->save_event(self::$plugin->events[0]);
-        \update_option('civicrm_event_ids', $this->ids);
+        $events = $this->get_events();
+        $ids = $this->save_event($events[0]);
+
+        \update_option('civicrm_event_ids', $ids);
     }
 
-    public function save_event($e)
+    private function save_event($e)
     {
         $post = [
+            'post_type' => self::$plugin::$post_type,
             'post_title' => $e['title'],
             'post_content' => $e['description'],
+            'post_status' => 'publish'
         ];
 
-        if (\array_key_exists($e['id'], $this->ids)) {
-            if ($this->ids[$e['id']]['md2'] === 'dirty') {
-                $post['post_id'] = $e['id']['wp_id'];
+        $ids = $this->get_ids();
+        if (\array_key_exists($e['id'], $ids)) {
+            if ($ids[$e['id']]['md2'] === 'dirty') {
+                $post['ID'] = $e['id']['wp_id'];
             };
         };
 
@@ -141,12 +149,15 @@ class Adapter
         self::try_update_meta($wp_post_id, 'event_loc_extra', $e, 'supplemental_address_1');
         self::try_update_meta($wp_post_id, 'event_loc_town', $e, 'city');
         self::try_update_meta($wp_post_id, 'event_loc_postcode', $e, 'postal_code');
-        $this->ids[$e['id']] = [];
-        $this->ids[$e['id']]['wp_id'] = $wp_post_id;
-        $this->ids[$e['id']]['md2'] = \hash("md2", serialize($e));
+        \update_post_meta($wp_post_id, 'event_civicrm_id', $e['id']);
+        $ids[$e['id']] = [];
+        $ids[$e['id']]['wp_id'] = $wp_post_id;
+        $ids[$e['id']]['md2'] = \hash("md2", serialize($e));
+
+        return $ids;
     }
 
-    public static function try_update_meta($id, $meta_key, $a, $key)
+    private static function try_update_meta($id, $meta_key, $a, $key)
     {
         if (array_key_exists($key, $a)) {
             \update_post_meta($id, $meta_key, $a[$key]);
