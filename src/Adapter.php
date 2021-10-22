@@ -28,7 +28,15 @@ class Adapter
         return $plugin;
     }
 
-    public function get_civicrm_events()
+    public function get_events()
+    {
+        $events = \get_transient('civicrm_events');
+        if (!$events) {
+            $events = $this->process_events();
+        }
+        return $events;
+    }
+
     {
         $ch = \curl_init();
 
