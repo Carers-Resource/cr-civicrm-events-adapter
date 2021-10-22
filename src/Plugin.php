@@ -13,9 +13,10 @@ class Plugin
     public $m; // mustache engine
     public $dotenv; // get secrets from .env
     public $data;
-    public $adapter; // does all the work
-    public $admin; // back end
+    public static $adapter; // does all the work
+    public static $admin; // back end
     public $events;
+    public static $plugin;
 
     public function __construct()
     {
@@ -23,11 +24,14 @@ class Plugin
 
     public static function register()
     {
-        $plugin = new self();
+        if (self::$plugin) {
+            return;
+        }
+        self::$plugin = new self();
         add_option('civicrm_event_ids', []);
-        $plugin->add_adapter()->add_dotenv()->add_mustache()->add_admin();
+        self::$plugin->add_adapter()->add_dotenv()->add_mustache()->add_admin();
 
-        $plugin->data = [
+        self::$plugin->data = [
             'title' => 'CiviCRM Events Adapter',
             'menu_title' => 'CiviCRM Events',
             'menu_slug' => 'civi_events',

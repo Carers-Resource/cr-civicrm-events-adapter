@@ -20,11 +20,11 @@ class Adapter
 
     public static function register($plugin)
     {
-        if ($plugin->adapter) {
+        if ($plugin::$adapter) {
             return $plugin;
         }
-        $plugin->adapter = new self();
-        $plugin->adapter::$plugin = $plugin;
+        $plugin::$adapter = new self();
+        $plugin::$adapter::$plugin = $plugin;
         return $plugin;
     }
 

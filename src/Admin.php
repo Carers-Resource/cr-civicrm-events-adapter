@@ -8,13 +8,13 @@ class Admin
 
     public static function register($plugin)
     {
-        if ($plugin->admin) {
+        if ($plugin::$admin) {
             return $plugin;
         }
-        $plugin->admin = new self();
-        $plugin->admin::$plugin = $plugin;
-        add_action('admin_menu', array($plugin->admin, 'admin_menu'));
-        add_action('admin_post_civi_events_erase_ids', array($plugin->admin, 'civi_events_erase_ids'));
+        $plugin::$admin = new self();
+        $plugin::$admin::$plugin = $plugin;
+        add_action('admin_menu', array($plugin::$admin, 'admin_menu'));
+        add_action('admin_post_civi_events_erase_ids', array($plugin::$admin, 'civi_events_erase_ids'));
         return $plugin;
     }
 
@@ -41,10 +41,10 @@ class Admin
 
 
         echo $t->render(self::$plugin->data);
-        self::$plugin->adapter->process_events();
+        self::$plugin::$adapter->process_events();
         $this->civi_events_list();
 
-        self::$plugin->adapter->save_first_event();
+        self::$plugin::$adapter->save_first_event();
     }
 
     public static function civi_events_erase_ids()
