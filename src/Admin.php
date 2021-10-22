@@ -29,6 +29,7 @@ class Admin
 
     public function civi_events_admin_page()
     {
+        $data = Self::$plugin->data;
         $data['clear_nonce'] = \wp_nonce_field('civi_events_erase_ids', '_wpnonce', true, false);
         $data['save_nonce'] = \wp_nonce_field('civi_save_event', '_wpnonce2', true, false);
         $data['stored_ids'] = serialize(\get_option('civicrm_event_ids'));
