@@ -3,7 +3,7 @@
 /**
  * Plugin Name: Carers' Resource CiviCRM Events Adapter
  * Plugin URI:  https://www.carersresource.org
- * Description: Pull in Events from CiviCRM to populate the events calendar
+ * Description: Pull in Events from a CiviCRM site using its API and convert them to WordPress posts.
  * Version:     dev
  * Author:      Carers' Resource (Gavin Massingham)
  * Author URI:  https://www.carersresource.org
@@ -12,8 +12,6 @@
  */
 
 namespace CarersResource\CiviEvents;
-
-use Dotenv\Dotenv as Dotenv;
 
 /**
  * Abort if we're being called directly.
