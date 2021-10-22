@@ -39,6 +39,8 @@ class Plugin
             'site_key' => $_ENV['CIVICRM_SITE_KEY'],
             'civi_user' => $_ENV['CIVICRM_USER'],
         ];
+
+        \add_action('init', [self::$plugin, 'add_custom_post_type']);
         # $plugin->data['response'] = $plugin->adapter->get_civicrm_events();
     }
 
@@ -68,5 +70,25 @@ class Plugin
     {
         Admin::register($this);
         return $this;
+    }
+
+    public function add_custom_post_type()
+    {
+        \register_post_type(
+            'cr_civi_events',
+            [
+                'label' => 'CiviCRM Groups and Events',
+                'public' => true,
+                'exclude_from_search' => false,
+                'publicly_queryable' => true,
+                'show_in_rest' => true,
+                'supports' => ['title', 'editor', 'thumbnail', 'custom-fields'],
+                'taxonomies' => ['categories', 'tags'],
+                'has_archive' => 'cr-groups-events',
+                'rewrite' => [
+                    'slug' => 'cr-groups-events'
+                ]
+            ]
+        );
     }
 }
