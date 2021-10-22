@@ -8,13 +8,11 @@ class Admin
 
     public static function register($plugin)
     {
-        if ($plugin::$admin) {
-            return $plugin;
-        }
         $plugin::$admin = new self();
-        $plugin::$admin::$plugin = $plugin;
+        self::$plugin = $plugin;
         add_action('admin_menu', array($plugin::$admin, 'admin_menu'));
         add_action('admin_post_civi_events_erase_ids', array($plugin::$admin, 'civi_events_erase_ids'));
+        add_action('admin_post_civi_save_event', [$plugin::$admin, 'civi_save_event']);
         return $plugin;
     }
 
@@ -31,20 +29,15 @@ class Admin
 
     public function civi_events_admin_page()
     {
-        #$tpl = $this->plugin->m->loadTemplate('admin'); // loads __DIR__.'/views/admin.mustache';
-        self::$plugin->data['clear_nonce'] = wp_nonce_field('civi_events_erase_ids', '_wpnonce', true, false);
-
-        self::$plugin->data['stored_ids'] = serialize(\get_option('civicrm_event_ids'));
+        $data['clear_nonce'] = \wp_nonce_field('civi_events_erase_ids', '_wpnonce', true, false);
+        $data['save_nonce'] = \wp_nonce_field('civi_save_event', '_wpnonce2', true, false);
+        $data['stored_ids'] = serialize(\get_option('civicrm_event_ids'));
 
         #$events_json = $this->plugin->data['response'];
         $t = self::$plugin->m->loadTemplate('admin');
 
-
-        echo $t->render(self::$plugin->data);
-        self::$plugin::$adapter->process_events();
+        echo $t->render($data);
         $this->civi_events_list();
-
-        self::$plugin::$adapter->save_first_event();
     }
 
     public static function civi_events_erase_ids()
@@ -55,11 +48,19 @@ class Admin
         exit;
     }
 
-
-    public function civi_events_list()
+    private function civi_events_list()
     {
         $t = self::$plugin->m->loadTemplate('events_list');
-        $data['events'] = self::$plugin->events;
+        $data['events'] = self::$plugin::$adapter->get_events();
         echo $t->render($data);
+    }
+
+    public function civi_save_event()
+    {
+        check_admin_referer('civi_save_event', '_wpnonce2');
+        self::$plugin::$adapter->save_first_event();
+        echo "Yay";
+        wp_redirect(admin_url('admin.php?page=civi_events'));
+        exit;
     }
 }
