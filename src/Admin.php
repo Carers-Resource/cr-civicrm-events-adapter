@@ -34,7 +34,6 @@ class Admin
         $data['save_nonce'] = \wp_nonce_field('civi_save_event', '_wpnonce2', true, false);
         $data['stored_ids'] = serialize(\get_option('civicrm_event_ids'));
 
-        #$events_json = $this->plugin->data['response'];
         $t = self::$plugin->m->loadTemplate('admin');
 
         echo $t->render($data);
