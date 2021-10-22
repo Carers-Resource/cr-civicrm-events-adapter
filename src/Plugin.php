@@ -70,10 +70,3 @@ class Plugin
         return $this;
     }
 }
-
-    
-# f0ce4bf6056eb531a5b4ad55242da548
-
-# 7ff10492c8cc1433a8d8e5352b47cf48
-
-# f1dd368f914ac71e7fc9baa86b243036
