@@ -10,7 +10,7 @@ use WP_Error;
 
 class Adapter
 {
-    private $plugin;
+    private static $plugin;
     private $response;
     private $ids;
 
@@ -20,8 +20,11 @@ class Adapter
 
     public static function register($plugin)
     {
+        if ($plugin->adapter) {
+            return $plugin;
+        }
         $plugin->adapter = new self();
-        $plugin->adapter->plugin = $plugin;
+        $plugin->adapter::$plugin = $plugin;
         return $plugin;
     }
 
@@ -42,7 +45,7 @@ class Adapter
         $data['to'] = $t->format("Y-m-d");
         $data['fields'] = 'id,title,summary,description,start_date,end_date,loc_block_id.id,loc_block_id.address_id.street_address,loc_block_id.address_id.supplemental_address_1,loc_block_id.address_id.supplemental_address_2,loc_block_id.address_id.supplemental_address_3,loc_block_id.address_id.city,loc_block_id.address_id.postal_code';
 
-        $tpl = $this->plugin->m->loadTemplate('api_call');
+        $tpl = self::$plugin->m->loadTemplate('api_call');
         $json = $tpl->render($data);
 
         $query = '?entity=Event&action=get&json=' . urlencode($json) . '&api_key=' . $user_key . '&key=' . $site_key;
@@ -70,7 +73,7 @@ class Adapter
 
         $events = $decoded['values'];
 
-        $this->plugin->events = array_values((array_filter($events, [$this, 'event_filter'])));
+        self::$plugin->events = array_values((array_filter($events, [$this, 'event_filter'])));
     }
 
 
@@ -106,8 +109,7 @@ class Adapter
 
     public function save_first_event()
     {
-        $this->save_event($this->plugin->events[0]);
-        \maybe_serialize($this->ids);
+        $this->save_event(self::$plugin->events[0]);
         \update_option('civicrm_event_ids', $this->ids);
     }
 
