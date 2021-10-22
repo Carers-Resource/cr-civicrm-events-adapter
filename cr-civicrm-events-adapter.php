@@ -4,7 +4,7 @@
  * Plugin Name: Carers' Resource CiviCRM Events Adapter
  * Plugin URI:  https://www.carersresource.org
  * Description: Pull in Events from CiviCRM to populate the events calendar
- * Version:     0.0.1
+ * Version:     dev
  * Author:      Carers' Resource (Gavin Massingham)
  * Author URI:  https://www.carersresource.org
  * Text Domain: cr-civicrm-events-adapter
