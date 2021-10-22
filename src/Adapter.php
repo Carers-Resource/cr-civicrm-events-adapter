@@ -70,7 +70,7 @@ class Adapter
 
         $events = $decoded['values'];
 
-        $this->plugin->events = (array_filter($events, [$this, 'event_filter']));
+        $this->plugin->events = array_values((array_filter($events, [$this, 'event_filter'])));
     }
 
 
@@ -104,7 +104,7 @@ class Adapter
         };
     }
 
-    public function save_events()
+    public function save_first_event()
     {
         $this->save_event($this->plugin->events[0]);
         \maybe_serialize($this->ids);
