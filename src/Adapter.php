@@ -31,6 +31,7 @@ class Adapter
         $events = \get_transient('civicrm_events');
         if (!$events) {
             $events = $this->process_events();
+            \set_transient('civicrm_events', $events, 300);
         }
         return $events;
     }
