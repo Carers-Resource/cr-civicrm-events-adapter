@@ -4,9 +4,6 @@ namespace CarersResource\CiviEvents;
 
 use DateInterval;
 use DateTime;
-use Mustache_Engine;
-use Dotenv\Dotenv;
-use WP_Error;
 
 class Adapter
 {
