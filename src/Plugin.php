@@ -15,8 +15,9 @@ class Plugin
     public $data;
     public static $adapter; // does all the work
     public static $admin; // back end
-    public $events;
+    public static $events;
     public static $plugin;
+    public static $post_type = 'cr_civi_events';
 
     public function __construct()
     {
@@ -24,9 +25,6 @@ class Plugin
 
     public static function register()
     {
-        if (self::$plugin) {
-            return;
-        }
         self::$plugin = new self();
         add_option('civicrm_event_ids', []);
         self::$plugin->add_adapter()->add_dotenv()->add_mustache()->add_admin();
@@ -41,7 +39,7 @@ class Plugin
         ];
 
         \add_action('init', [self::$plugin, 'add_custom_post_type']);
-        # $plugin->data['response'] = $plugin->adapter->get_civicrm_events();
+        \add_action('init', [self::$plugin, 'add_meta']);
     }
 
 
@@ -75,7 +73,7 @@ class Plugin
     public function add_custom_post_type()
     {
         \register_post_type(
-            'cr_civi_events',
+            self::$post_type,
             [
                 'label' => 'CiviCRM Groups and Events',
                 'public' => true,
@@ -90,5 +88,26 @@ class Plugin
                 ]
             ]
         );
+    }
+
+    public function add_meta()
+    {
+        $meta = [
+            ['key' => 'event_from', 'type' => 'string',],
+            ['key' => 'event_to', 'type' => 'string',],
+            ['key' => 'event_loc_street', 'type' => 'string',],
+            ['key' => 'event_loc_extra', 'type' => 'string',],
+            ['key' => 'event_loc_town', 'type' => 'string',],
+            ['key' => 'event_loc_postcode', 'type' => 'string',],
+            ['key' => 'event_civicrm_id', 'type' => 'integer',],
+        ];
+        $reg = function ($item) {
+            register_post_meta(self::$post_type, $item['key'], [
+                'type' => $item['type'],
+                'single' => true,
+                'show_in_rest' => true
+            ]);
+        };
+        array_map($reg, $meta);
     }
 }
