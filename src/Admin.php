@@ -41,8 +41,6 @@ class Admin
         $this->civi_events_list();
 
         $this->plugin->adapter->save_events();
-
-        #$this->plugin->adapter->save_an_event($events_json);
     }
 
     public static function civi_events_erase_ids()
