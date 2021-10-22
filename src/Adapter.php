@@ -28,12 +28,7 @@ class Adapter
 
     public function get_events()
     {
-        $events = \get_transient('civicrm_events');
-        if (!$events) {
-            $events = $this->process_events();
-            \set_transient('civicrm_events', $events, 300);
-        }
-        return $events;
+        return $this->process_events();
     }
 
     private function process_events()
@@ -49,6 +44,9 @@ class Adapter
 
     private function get_civicrm_events()
     {
+        if (false !== ($cev = \get_transient('civicrm_events'))) {
+            return $cev;
+        };
         $ch = \curl_init();
 
         $auth = $_ENV['DEV_USER'] . ':' . $_ENV['DEV_PASS'];
@@ -80,6 +78,7 @@ class Adapter
         if (\curl_errno($ch)) {
             throw new \Exception(\curl_error($ch));
         }
+        \set_transient('civicrm_events', $response, 300);
         return $response;
     }
 
