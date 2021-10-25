@@ -46,7 +46,8 @@ class Admin
     {
         check_admin_referer('civi_events_erase_ids', '_wpnonce');
         update_option('civicrm_event_ids', []);
-        wp_redirect(admin_url('admin.php?page=civi_events'));
+        delete_transient('civicrm_events');
+        wp_redirect(admin_url('admin.php?page=civi-events'));
         exit;
     }
 
