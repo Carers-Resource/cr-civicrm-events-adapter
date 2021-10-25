@@ -157,7 +157,7 @@ class Adapter
         $post = [
             'post_type' => self::$plugin::$post_type,
             'post_title' => $e['title'],
-            'post_content' => $e['description'],
+            'post_content' => \wp_strip_all_tags($e['description']),
             'post_status' => 'publish'
         ];
 
@@ -168,14 +168,18 @@ class Adapter
             };
         };
 
+
         $wp_post_id = \wp_insert_post($post);
-        self::try_update_meta($wp_post_id, 'event_from', $e, 'start_date');
-        self::try_update_meta($wp_post_id, 'event_to', $e, 'end_date');
+        self::try_update_meta($wp_post_id, 'event_from', $e, 'start_date', true);
+        self::try_update_meta($wp_post_id, 'event_to', $e, 'end_date', true);
         self::try_update_meta($wp_post_id, 'event_loc_street', $e, 'street_address');
         self::try_update_meta($wp_post_id, 'event_loc_extra', $e, 'supplemental_address_1');
         self::try_update_meta($wp_post_id, 'event_loc_town', $e, 'city');
         self::try_update_meta($wp_post_id, 'event_loc_postcode', $e, 'postal_code');
         \update_post_meta($wp_post_id, 'event_civicrm_id', $e['id']);
+        \update_post_meta($wp_post_id, 'event_multiday', self::is_multiday($e));
+
+
         $ids[$e['id']] = [];
         $ids[$e['id']]['wp_id'] = $wp_post_id;
         $ids[$e['id']]['md2'] = \hash("md2", serialize($e));
@@ -183,10 +187,22 @@ class Adapter
         return $ids;
     }
 
-    private static function try_update_meta($id, $meta_key, $a, $key)
+    private static function is_multiday($e)
+    {
+        if ((date('Ymd', $e['start_date'])) !== date('Ymd', $e['end_date'])) {
+            return true;
+        }
+        return false;
+    }
+
+    private static function try_update_meta($id, $meta_key, $a, $key, $datetime = false)
     {
         if (array_key_exists($key, $a)) {
-            \update_post_meta($id, $meta_key, $a[$key]);
+            if ($datetime) {
+                \update_post_meta($id, $meta_key, strtotime($a[$key]));
+            } else {
+                \update_post_meta($id, $meta_key, $a[$key]);
+            }
         };
     }
 }
