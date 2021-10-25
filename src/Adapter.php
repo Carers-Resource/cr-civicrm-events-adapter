@@ -41,7 +41,8 @@ class Adapter
 
     private function get_civicrm_events()
     {
-        if (false !== ($cev = \get_transient('civicrm_events'))) {
+
+        if (self::$plugin->data['use_cache'] && (false !== ($cev = \get_transient('civicrm_events')))) {
             return $cev;
         };
         $ch = \curl_init();
@@ -75,7 +76,12 @@ class Adapter
         if (\curl_errno($ch)) {
             throw new \Exception(\curl_error($ch));
         }
-        \set_transient('civicrm_events', $response, 300);
+        if (!self::$plugin->data['use_cache']) {
+            \delete_transient('civicrm_events');
+        }
+        if (self::$plugin->data['use_cache']) {
+            \set_transient('civicrm_events', $response, 300);
+        }
         return $response;
     }
 
