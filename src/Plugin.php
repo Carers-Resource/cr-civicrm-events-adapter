@@ -14,7 +14,7 @@ class Plugin
     public static $admin; // back end
     public static $events;
     public static $plugin;
-    public static $post_type = 'cr_civi_events';
+    public static $post_type = 'cr-civi-events';
 
     public function __construct()
     {
@@ -29,11 +29,13 @@ class Plugin
         self::$plugin->data = [
             'title' => 'CiviCRM Events Adapter',
             'menu_title' => 'CiviCRM Events',
-            'menu_slug' => 'civi_events',
+            'menu_slug' => 'civi-events',
             'user_key' => $_ENV['CIVICRM_USER_KEY'],
             'site_key' => $_ENV['CIVICRM_SITE_KEY'],
             'civi_user' => $_ENV['CIVICRM_USER'],
         ];
+
+        self::$plugin->data['use_cache'] = $_ENV['use_cache'] ?? false;
 
         \add_action('init', [self::$plugin, 'add_custom_post_type']);
         \add_action('init', [self::$plugin, 'add_meta']);
@@ -49,6 +51,7 @@ class Plugin
     private function add_dotenv()
     {
         $this->dotenv = Dotenv::createImmutable(\plugin_dir_path(__DIR__));
+        // $this->dotenv->ifPresent('use_cache')->isBoolean();
         $this->dotenv->load();
         return $this;
     }
@@ -78,11 +81,8 @@ class Plugin
                 'publicly_queryable' => true,
                 'show_in_rest' => true,
                 'supports' => ['title', 'editor', 'thumbnail', 'custom-fields'],
-                'taxonomies' => ['categories', 'tags'],
-                'has_archive' => 'cr-groups-events',
-                'rewrite' => [
-                    'slug' => 'cr-groups-events'
-                ]
+                'taxonomies' => ['tags'],
+                'has_archive' => 'groups-and-events',
             ]
         );
     }
@@ -90,13 +90,14 @@ class Plugin
     public function add_meta()
     {
         $meta = [
-            ['key' => 'event_from', 'type' => 'string',],
-            ['key' => 'event_to', 'type' => 'string',],
+            ['key' => 'event_from', 'type' => 'integer',],
+            ['key' => 'event_to', 'type' => 'integer',],
             ['key' => 'event_loc_street', 'type' => 'string',],
             ['key' => 'event_loc_extra', 'type' => 'string',],
             ['key' => 'event_loc_town', 'type' => 'string',],
             ['key' => 'event_loc_postcode', 'type' => 'string',],
             ['key' => 'event_civicrm_id', 'type' => 'integer',],
+            ['key' => 'event_multiday', 'type' => 'boolean']
         ];
         $reg = function ($item) {
             register_post_meta(self::$post_type, $item['key'], [
