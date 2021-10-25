@@ -28,6 +28,11 @@ class Adapter
         return $this->process_events();
     }
 
+    public function sync()
+    {
+        $this->save_events($this->process_events());
+    }
+
     private function process_events()
     {
         $response = $this->get_civicrm_events();
@@ -37,6 +42,24 @@ class Adapter
         $events = $decoded['values'];
 
         return array_values((array_filter($events, [$this, 'event_filter'])));
+    }
+
+    private function save_events($e)
+    {
+        $ids = [];
+
+        foreach ($e as $event) {
+            $ids[] = $this->save_event($event);
+        }
+        $old_ids = $this->get_ids();
+
+        foreach ($old_ids as $old_id) {
+            if (!\key_exists($old_id, $ids)) {
+                \wp_trash_post($old_id['wp_id']);
+            }
+        }
+        \update_option('civicrm_event_ids', $ids);
+        \delete_transient('civi_events');
     }
 
     private function get_civicrm_events()
@@ -123,7 +146,7 @@ class Adapter
 
     public function save_first_event()
     {
-        $events = $this->get_events();
+        $events = $this->process_events();
         $ids = $this->save_event($events[0]);
 
         \update_option('civicrm_event_ids', $ids);

@@ -13,6 +13,7 @@ class Admin
         add_action('admin_menu', array($plugin::$admin, 'admin_menu'));
         add_action('admin_post_civi_events_erase_ids', array($plugin::$admin, 'civi_events_erase_ids'));
         add_action('admin_post_civi_save_event', [$plugin::$admin, 'civi_save_event']);
+        add_action('admin_post_civi_sync_all', [$plugin::$admin, 'civi_sync_all']);
         return $plugin;
     }
 
@@ -32,6 +33,7 @@ class Admin
         $data = Self::$plugin->data;
         $data['clear_nonce'] = \wp_nonce_field('civi_events_erase_ids', '_wpnonce', true, false);
         $data['save_nonce'] = \wp_nonce_field('civi_save_event', '_wpnonce2', true, false);
+        $data['sync_nonce'] = \wp_nonce_field('civi_sync_all', '_wpnonce3', true, false);
         $data['stored_ids'] = serialize(\get_option('civicrm_event_ids'));
 
         $t = self::$plugin->m->loadTemplate('admin');
@@ -59,8 +61,15 @@ class Admin
     {
         check_admin_referer('civi_save_event', '_wpnonce2');
         self::$plugin::$adapter->save_first_event();
-        echo "Yay";
-        wp_redirect(admin_url('admin.php?page=civi_events'));
+        wp_redirect(admin_url('admin.php?page=civi-events'));
+        exit;
+    }
+
+    public function civi_sync_all()
+    {
+        check_admin_referer('civi_sync_all', '_wpnonce3');
+        self::$plugin::$adapter->sync();
+        wp_redirect(admin_url('admin.php?page=civi-events'));
         exit;
     }
 }
