@@ -8,6 +8,7 @@ use DateTime;
 class Adapter
 {
     private static $plugin;
+    private $ids;
 
     public function __construct()
     {
@@ -41,24 +42,25 @@ class Adapter
 
         $events = $decoded['values'];
 
+        $this->ids = $this->get_ids();
+
         return array_values((array_filter($events, [$this, 'event_filter'])));
     }
 
     private function save_events($events)
     {
-        $civi_ids = [];
-
+        $new_ids = [];
         foreach ($events as $event) {
-            $civi_ids[$event['id']] = $this->save_event($event);
+            $new_ids[] = $this->save_event($event);
         }
-        $current_ids = $this->get_ids();
+        $current_ids = $this->ids;
 
         foreach ($current_ids as $current_id) {
-            if (!\key_exists($current_id, $civi_ids)) {
-                \wp_trash_post($current_id['wp_id']);
+            if (!\key_exists($current_id, $new_ids)) {
+                echo (\wp_trash_post($current_id['wp_id']));
             }
         }
-        \update_option('civicrm_event_ids', $civi_ids);
+        \update_option('civicrm_event_ids', $new_ids);
         \delete_transient('civi_events');
     }
 
@@ -67,9 +69,8 @@ class Adapter
     {
         $id = $this->save_event($event);
 
-        $current_ids = $this->get_ids();
-
-        $current_ids[$event['id']] = $id;
+        $this->ids[$event['id']] = $id;
+        \update_option('civicrm_event_ids', $this->ids);
     }
 
     private function get_civicrm_events()
@@ -118,26 +119,23 @@ class Adapter
         return $response;
     }
 
+    // Function event_filter currently runs the hash check on each event
+    // but the event list is not modified. Other filters can be added here.
     private function event_filter($event)
     {
-        $ids = $this->get_ids();
-        return ($this->check_id_unknown($event, $ids) || $this->check_hash_no_match($event, $ids));
-    }
-
-    // check_id_unknown checks to see if the CiviCRM event ID is new to us
-    private function check_id_unknown($event, $ids)
-    {
-        return !(\array_key_exists($event['id'], $ids));
+        return ($this->check_hash($event));
     }
 
     // check_hash_no_match returns true if the md2 hash of a given event
     // is different to the one we have stored. If different it means the
     // CiviCRM record has changed. 
-    private function check_hash_no_match($event, $ids)
+    private function check_hash($event)
     {
-        if (\hash("md2", serialize($event)) !== $ids[$event['id']]['md2']) {
-            $ids[$event['id']]['md2'] = 'dirty';
+        if (\hash("md2", serialize($event)) !== $this->ids[$event['id']]['md2']) {
+            $this->ids[$event['id']]['md2'] = 'dirty';
         };
+
+        return true;
     }
 
     private function get_ids()
@@ -147,20 +145,23 @@ class Adapter
 
     private function save_event($e)
     {
+
         $post = [
+            'post_id' => false,
             'post_type' => self::$plugin::$post_type,
             'post_title' => $e['title'],
             'post_content' => \wp_strip_all_tags($e['description']),
             'post_status' => 'publish'
         ];
 
-        $civi_ids = $this->get_ids();
-        if (\array_key_exists($e['id'], $civi_ids)) {
-            if ($civi_ids[$e['id']]['md2'] === 'dirty') {
-                $post['ID'] = $e['id']['wp_id'];
-            };
-        };
-
+        //If the event ID is already known, and the event hasn't been modified, there's nothing to do.
+        if (\array_key_exists($e['id'], $this->ids)) {
+            if ($this->ids[$e['id']]['md2'] !== 'dirty') {
+                return;
+            }
+            // If the event has been modified we update
+            $post['ID'] = $e['id']['wp_id'];
+        }
 
         $wp_post_id = \wp_insert_post($post);
         self::try_update_meta($wp_post_id, 'event_from', $e, 'start_date', true);
