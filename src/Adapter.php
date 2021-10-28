@@ -44,30 +44,40 @@ class Adapter
         return array_values((array_filter($events, [$this, 'event_filter'])));
     }
 
-    private function save_events($e)
+    private function save_events($events)
     {
-        $ids = [];
+        $civi_ids = [];
 
-        foreach ($e as $event) {
-            $ids[] = $this->save_event($event);
+        foreach ($events as $event) {
+            $civi_ids[$event['id']] = $this->save_event($event);
         }
-        $old_ids = $this->get_ids();
+        $current_ids = $this->get_ids();
 
-        foreach ($old_ids as $old_id) {
-            if (!\key_exists($old_id, $ids)) {
-                \wp_trash_post($old_id['wp_id']);
+        foreach ($current_ids as $current_id) {
+            if (!\key_exists($current_id, $civi_ids)) {
+                \wp_trash_post($current_id['wp_id']);
             }
         }
-        \update_option('civicrm_event_ids', $ids);
+        \update_option('civicrm_event_ids', $civi_ids);
         \delete_transient('civi_events');
+    }
+
+
+    public function save_single_event($event)
+    {
+        $id = $this->save_event($event);
+
+        $current_ids = $this->get_ids();
+
+        $current_ids[$event['id']] = $id;
     }
 
     private function get_civicrm_events()
     {
 
-        if (self::$plugin->data['use_cache'] && (false !== ($cev = \get_transient('civicrm_events')))) {
+        /*         if (self::$plugin->data['use_cache'] && (false !== ($cev = \get_transient('civicrm_events')))) {
             return $cev;
-        };
+        }; */
         $ch = \curl_init();
 
         $auth = $_ENV['DEV_USER'] . ':' . $_ENV['DEV_PASS'];
@@ -108,48 +118,31 @@ class Adapter
         return $response;
     }
 
-    private function event_filter($e)
+    private function event_filter($event)
     {
-        return ($this->check_id_unknown($e) || $this->check_hash_no_match($e));
-    }
-
-    // check_event_in_past checks to see if an event falls in the past
-    // and so can be deleted.
-    private function check_event_in_past($e)
-    {
-        $today = date('Y-m-d');
-        $event_end = $e['end_date'];
-        return ($event_end < $today);
+        $ids = $this->get_ids();
+        return ($this->check_id_unknown($event, $ids) || $this->check_hash_no_match($event, $ids));
     }
 
     // check_id_unknown checks to see if the CiviCRM event ID is new to us
-    private function check_id_unknown($e)
+    private function check_id_unknown($event, $ids)
     {
-        return !(\array_key_exists($e['id'], $this->get_ids()));
+        return !(\array_key_exists($event['id'], $ids));
     }
 
     // check_hash_no_match returns true if the md2 hash of a given event
     // is different to the one we have stored. If different it means the
     // CiviCRM record has changed. 
-    private function check_hash_no_match($e)
+    private function check_hash_no_match($event, $ids)
     {
-        $ids = $this->get_ids();
-        if (\hash("md2", serialize($e)) !== $ids[$e['id']]['md2']) {
-            $ids[$e['id']]['md2'] = 'dirty';
+        if (\hash("md2", serialize($event)) !== $ids[$event['id']]['md2']) {
+            $ids[$event['id']]['md2'] = 'dirty';
         };
     }
 
     private function get_ids()
     {
         return \get_option('civicrm_event_ids');
-    }
-
-    public function save_first_event()
-    {
-        $events = $this->process_events();
-        $ids = $this->save_event($events[0]);
-
-        \update_option('civicrm_event_ids', $ids);
     }
 
     private function save_event($e)
@@ -161,9 +154,9 @@ class Adapter
             'post_status' => 'publish'
         ];
 
-        $ids = $this->get_ids();
-        if (\array_key_exists($e['id'], $ids)) {
-            if ($ids[$e['id']]['md2'] === 'dirty') {
+        $civi_ids = $this->get_ids();
+        if (\array_key_exists($e['id'], $civi_ids)) {
+            if ($civi_ids[$e['id']]['md2'] === 'dirty') {
                 $post['ID'] = $e['id']['wp_id'];
             };
         };
@@ -180,11 +173,11 @@ class Adapter
         \update_post_meta($wp_post_id, 'event_multiday', self::is_multiday($e));
 
 
-        $ids[$e['id']] = [];
-        $ids[$e['id']]['wp_id'] = $wp_post_id;
-        $ids[$e['id']]['md2'] = \hash("md2", serialize($e));
+        $id = [];
+        $id['wp_id'] = $wp_post_id;
+        $id['md2'] = \hash("md2", serialize($e));
 
-        return $ids;
+        return $id;
     }
 
     private static function is_multiday($e)

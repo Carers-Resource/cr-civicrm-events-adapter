@@ -61,7 +61,8 @@ class Admin
     public function civi_save_event()
     {
         check_admin_referer('civi_save_event', '_wpnonce2');
-        self::$plugin::$adapter->save_first_event();
+        $e = self::$plugin::$adapter->get_events();
+        self::$plugin::$adapter->save_single_event($e[0]);
         wp_redirect(admin_url('admin.php?page=civi-events'));
         exit;
     }
