@@ -44,20 +44,26 @@ class Adapter
 
         $this->ids = $this->get_ids();
 
-        return array_values((array_filter($events, [$this, 'event_filter'])));
+        return array_values(array_filter($events, [$this, 'event_filter']));
     }
 
     private function save_events($events)
     {
+        $current_ids = $this->ids;
         $new_ids = [];
         foreach ($events as $event) {
-            $new_ids[] = $this->save_event($event);
+            if ((\array_key_exists($event['id'], $current_ids)) && ($current_ids[$event['id']]['md2'] !== 'dirty')) {
+                $new_ids[$event['id']] = $current_ids[$event['id']];
+                echo serialize($new_ids) . "<br/>";
+                continue;
+            }
+            $new_ids[$event['id']] = $this->save_event($event);
         }
-        $current_ids = $this->ids;
 
-        foreach ($current_ids as $current_id) {
-            if (!\key_exists($current_id, $new_ids)) {
-                echo (\wp_trash_post($current_id['wp_id']));
+
+        foreach ($current_ids as $i => $current_id) {
+            if (!\array_key_exists($i, $new_ids)) {
+                \wp_trash_post($current_id['wp_id']);
             }
         }
         \update_option('civicrm_event_ids', $new_ids);
@@ -131,9 +137,11 @@ class Adapter
     // CiviCRM record has changed. 
     private function check_hash($event)
     {
-        if (\hash("md2", serialize($event)) !== $this->ids[$event['id']]['md2']) {
+        if ((\array_key_exists($event['id'], $this->ids)) && (\hash("md2", serialize($event)) !== $this->ids[$event['id']]['md2'])) {
             $this->ids[$event['id']]['md2'] = 'dirty';
+            echo $event['id'] . ": " . $this->ids[$event['id']]['md2'] . " ------ wp-id: " . $this->ids[$event['id']]['wp_id']  . "<br/>";
         };
+        echo $event['id'] . " " . \hash("md2", serialize($event)) . " ______ " . $this->ids[$event['id']]['md2'] . " ------ wp-id: " . $this->ids[$event['id']]['wp_id'] . "<br/>";
 
         return true;
     }
@@ -143,59 +151,60 @@ class Adapter
         return \get_option('civicrm_event_ids');
     }
 
-    private function save_event($e)
+    private function save_event($event)
     {
 
         $post = [
             'post_id' => false,
             'post_type' => self::$plugin::$post_type,
-            'post_title' => $e['title'],
-            'post_content' => \wp_strip_all_tags($e['description']),
+            'post_title' => $event['title'],
+            'post_content' => \wp_strip_all_tags($event['description']),
             'post_status' => 'publish'
         ];
 
         //If the event ID is already known, and the event hasn't been modified, there's nothing to do.
-        if (\array_key_exists($e['id'], $this->ids)) {
-            if ($this->ids[$e['id']]['md2'] !== 'dirty') {
+        if (\array_key_exists($event['id'], $this->ids)) {
+            if ($this->ids[$event['id']]['md2'] !== 'dirty') {
                 return;
             }
             // If the event has been modified we update
-            $post['ID'] = $e['id']['wp_id'];
+            $post['ID'] = $this->ids[$event['id']]['wp_id'];
+            echo "will update post" . $post['ID'] . "<br/>";
         }
 
-        $wp_post_id = \wp_insert_post($post);
-        self::try_update_meta($wp_post_id, 'event_from', $e, 'start_date', true);
-        self::try_update_meta($wp_post_id, 'event_to', $e, 'end_date', true);
-        self::try_update_meta($wp_post_id, 'event_loc_street', $e, 'street_address');
-        self::try_update_meta($wp_post_id, 'event_loc_extra', $e, 'supplemental_address_1');
-        self::try_update_meta($wp_post_id, 'event_loc_town', $e, 'city');
-        self::try_update_meta($wp_post_id, 'event_loc_postcode', $e, 'postal_code');
-        \update_post_meta($wp_post_id, 'event_civicrm_id', $e['id']);
-        \update_post_meta($wp_post_id, 'event_multiday', self::is_multiday($e));
+        $wp_post_id = \wp_insert_post($post, true);
+        self::try_update_meta($wp_post_id, 'event_from', $event, 'start_date', true);
+        self::try_update_meta($wp_post_id, 'event_to', $event, 'end_date', true);
+        self::try_update_meta($wp_post_id, 'event_loc_street', $event, 'street_address');
+        self::try_update_meta($wp_post_id, 'event_loc_extra', $event, 'supplemental_address_1');
+        self::try_update_meta($wp_post_id, 'event_loc_town', $event, 'city');
+        self::try_update_meta($wp_post_id, 'event_loc_postcode', $event, 'postal_code');
+        \update_post_meta($wp_post_id, 'event_civicrm_id', $event['id']);
+        \update_post_meta($wp_post_id, 'event_multiday', self::is_multiday($event));
 
 
         $id = [];
         $id['wp_id'] = $wp_post_id;
-        $id['md2'] = \hash("md2", serialize($e));
+        $id['md2'] = \hash("md2", serialize($event));
 
         return $id;
     }
 
-    private static function is_multiday($e)
+    private static function is_multiday($event)
     {
-        if ((date('Ymd', $e['start_date'])) !== date('Ymd', $e['end_date'])) {
+        if ((date('Ymd', $event['start_date'])) !== date('Ymd', $event['end_date'])) {
             return true;
         }
         return false;
     }
 
-    private static function try_update_meta($id, $meta_key, $a, $key, $datetime = false)
+    private static function try_update_meta($id, $meta_key, $array, $key, $datetime = false)
     {
-        if (array_key_exists($key, $a)) {
+        if (array_key_exists($key, $array)) {
             if ($datetime) {
-                \update_post_meta($id, $meta_key, strtotime($a[$key]));
+                \update_post_meta($id, $meta_key, strtotime($array[$key]));
             } else {
-                \update_post_meta($id, $meta_key, $a[$key]);
+                \update_post_meta($id, $meta_key, $array[$key]);
             }
         };
     }
