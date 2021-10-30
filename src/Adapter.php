@@ -192,7 +192,7 @@ class Adapter
 
     private static function is_multiday($event)
     {
-        if ((date('Ymd', $event['start_date'])) !== date('Ymd', $event['end_date'])) {
+        if ((date('Ymd', strtotime($event['start_date']))) !== date('Ymd', strtotime($event['end_date']))) {
             return true;
         }
         return false;
