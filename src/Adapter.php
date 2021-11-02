@@ -158,7 +158,7 @@ class Adapter
             'post_id' => false,
             'post_type' => self::$plugin::$post_type,
             'post_title' => $event['title'],
-            'post_content' => \wp_strip_all_tags($event['description']),
+            'post_content' => $event['description'],
             'post_status' => 'publish'
         ];
 
