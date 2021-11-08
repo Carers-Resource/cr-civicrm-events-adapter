@@ -82,12 +82,14 @@ class Adapter
     private function get_civicrm_events()
     {
 
-        /*         if (self::$plugin->data['use_cache'] && (false !== ($cev = \get_transient('civicrm_events')))) {
+        if ($_ENV['USE_CACHE'] && (false !== ($cev = \get_transient('civicrm_events')))) {
             return $cev;
-        }; */
+        };
         $ch = \curl_init();
 
-        $auth = $_ENV['DEV_USER'] . ':' . $_ENV['DEV_PASS'];
+        if ($_ENV['USE_AUTH']) {
+            $auth = $_ENV['DEV_USER'] . ':' . $_ENV['DEV_PASS'];
+        }
         $user_key = $_ENV['CIVICRM_USER_KEY'];
         $site_key = $_ENV['CIVICRM_SITE_KEY'];
 
@@ -108,7 +110,9 @@ class Adapter
         $url = $site . $endpoint . $query;
 
         \curl_setopt($ch, \CURLOPT_RETURNTRANSFER, 1);
-        \curl_setopt($ch, \CURLOPT_USERPWD, $auth);
+        if ($_ENV['USE_AUTH']) {
+            \curl_setopt($ch, \CURLOPT_USERPWD, $auth);
+        }
         \curl_setopt($ch, \CURLOPT_URL, $url);
 
         $response = \curl_exec($ch);
@@ -116,12 +120,13 @@ class Adapter
         if (\curl_errno($ch)) {
             throw new \Exception(\curl_error($ch));
         }
-        if (!self::$plugin->data['use_cache']) {
+        if ($_ENV['USE_CACHE']) {
             \delete_transient('civicrm_events');
         }
-        if (self::$plugin->data['use_cache']) {
+        if ($_ENV['USE_CACHE']) {
             \set_transient('civicrm_events', $response, 300);
         }
+        echo $response;
         return $response;
     }
 

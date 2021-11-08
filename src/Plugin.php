@@ -35,8 +35,6 @@ class Plugin
             'civi_user' => $_ENV['CIVICRM_USER'],
         ];
 
-        self::$plugin->data['use_cache'] = $_ENV['use_cache'] ?? false;
-
         \add_action('init', [self::$plugin, 'add_custom_post_type']);
         \add_action('init', [self::$plugin, 'add_meta']);
     }
@@ -51,8 +49,9 @@ class Plugin
     private function add_dotenv()
     {
         $this->dotenv = Dotenv::createImmutable(\plugin_dir_path(__DIR__));
-        // $this->dotenv->ifPresent('use_cache')->isBoolean();
         $this->dotenv->load();
+        $this->dotenv->ifPresent('USE_CACHE')->isBoolean();
+        $this->dotenv->ifPresent('USE_AUTH')->isBoolean();
         return $this;
     }
 
