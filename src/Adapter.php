@@ -54,7 +54,6 @@ class Adapter
         foreach ($events as $event) {
             if ((\array_key_exists($event['id'], $current_ids)) && ($current_ids[$event['id']]['md2'] !== 'dirty')) {
                 $new_ids[$event['id']] = $current_ids[$event['id']];
-                echo serialize($new_ids) . "<br/>";
                 continue;
             }
             $new_ids[$event['id']] = $this->save_event($event);
@@ -126,7 +125,6 @@ class Adapter
         if ($_ENV['USE_CACHE']) {
             \set_transient('civicrm_events', $response, 300);
         }
-        echo $response;
         return $response;
     }
 
