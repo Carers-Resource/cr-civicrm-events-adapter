@@ -74,13 +74,14 @@ class Plugin
         \register_post_type(
             self::$post_type,
             [
-                'label' => 'CiviCRM Groups and Events',
+                'label' => 'Groups and Events',
                 'public' => true,
                 'exclude_from_search' => false,
                 'publicly_queryable' => true,
                 'show_in_rest' => true,
                 'supports' => ['title', 'editor', 'thumbnail', 'custom-fields'],
                 'taxonomies' => ['tags'],
+                'rewrite' => ['slug' => 'groups-and-events'],
                 'has_archive' => 'groups-and-events',
             ]
         );
