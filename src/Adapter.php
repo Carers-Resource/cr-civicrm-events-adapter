@@ -161,9 +161,13 @@ class Adapter
             'post_id' => false,
             'post_type' => self::$plugin::$post_type,
             'post_title' => $event['title'],
-            'post_content' => $event['description'],
+            'post_content' => '',
             'post_status' => 'publish'
         ];
+
+        if (\array_key_exists('description', $event)) {
+            $post['post_content'] = $event['description'];
+        }
 
         //If the event ID is already known, and the event hasn't been modified, there's nothing to do.
         if (\array_key_exists($event['id'], $this->ids)) {
