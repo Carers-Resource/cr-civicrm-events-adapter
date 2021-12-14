@@ -135,15 +135,13 @@ class Adapter
         return ($this->check_hash($event));
     }
 
-    // check_hash_no_match returns true if the md2 hash of a given event
-    // is different to the one we have stored. If different it means the
-    // CiviCRM record has changed. 
     private function check_hash($event)
     {
         if ((\array_key_exists($event['id'], $this->ids)) && (\hash("md2", serialize($event)) !== $this->ids[$event['id']]['md2'])) {
             $this->ids[$event['id']]['md2'] = 'dirty';
             echo $event['id'] . ": " . $this->ids[$event['id']]['md2'] . " ------ wp-id: " . $this->ids[$event['id']]['wp_id']  . "<br/>";
         };
+
         echo $event['id'] . " " . \hash("md2", serialize($event)) . " ______ " . $this->ids[$event['id']]['md2'] . " ------ wp-id: " . $this->ids[$event['id']]['wp_id'] . "<br/>";
 
         return true;
