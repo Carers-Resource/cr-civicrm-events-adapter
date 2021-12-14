@@ -20,7 +20,7 @@ class Plugin
     {
     }
 
-    public static function register()
+    public static function register($fp)
     {
         self::$plugin = new self();
         add_option('civicrm_event_ids', []);
