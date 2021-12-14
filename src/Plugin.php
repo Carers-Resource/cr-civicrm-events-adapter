@@ -20,10 +20,11 @@ class Plugin
     {
     }
 
-    public static function register()
+    public static function register($fp)
     {
         self::$plugin = new self();
         add_option('civicrm_event_ids', []);
+        add_option('civicrm_last_sync');
         self::$plugin->add_adapter()->add_dotenv()->add_mustache()->add_admin();
 
         self::$plugin->data = [
@@ -35,10 +36,33 @@ class Plugin
             'civi_user' => $_ENV['CIVICRM_USER'],
         ];
 
-        \add_action('init', [self::$plugin, 'add_custom_post_type']);
-        \add_action('init', [self::$plugin, 'add_meta']);
+        \register_activation_hook($fp, [\get_called_class(), 'activate']);
+        \register_deactivation_hook($fp, [\get_called_class(), 'deactivate']);
+        \add_action('civicrm_sync', [\get_called_class(), 'scheduled_sync']);
+        \add_action('init', [\get_called_class(), 'add_custom_post_type']);
+        \add_action('init', [\get_called_class(), 'add_meta']);
     }
 
+    public static function activate()
+    {
+        if (!wp_next_scheduled('civicrm_sync')) {
+            wp_schedule_event(time(), 'hourly', 'civicrm_sync');
+        }
+    }
+
+    public static function deactivate()
+    {
+        \delete_option('civicrm_last_sync');
+        \delete_option('civicrm_event_ids');
+        $timestamp = wp_next_scheduled('civicrm_sync');
+        wp_unschedule_event($timestamp, 'civicrm_sync');
+    }
+
+    public static function scheduled_sync()
+    {
+        self::$plugin::$adapter->sync();
+        \update_option('civicrm_last_sync', \current_time('Y-m-d H:i:s') . ' scheduled');
+    }
 
     private function add_adapter()
     {
@@ -69,7 +93,7 @@ class Plugin
         return $this;
     }
 
-    public function add_custom_post_type()
+    public static function add_custom_post_type()
     {
         \register_post_type(
             self::$post_type,
@@ -87,7 +111,7 @@ class Plugin
         );
     }
 
-    public function add_meta()
+    public static function add_meta()
     {
         $meta = [
             ['key' => 'event_from', 'type' => 'integer',],
