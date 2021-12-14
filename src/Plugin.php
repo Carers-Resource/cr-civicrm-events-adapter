@@ -24,6 +24,7 @@ class Plugin
     {
         self::$plugin = new self();
         add_option('civicrm_event_ids', []);
+        add_option('civicrm_last_sync');
         self::$plugin->add_adapter()->add_dotenv()->add_mustache()->add_admin();
 
         self::$plugin->data = [

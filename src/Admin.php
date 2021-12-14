@@ -35,6 +35,7 @@ class Admin
         $data['save_nonce'] = \wp_nonce_field('civi_save_event', '_wpnonce2', true, false);
         $data['sync_nonce'] = \wp_nonce_field('civi_sync_all', '_wpnonce3', true, false);
         $data['stored_ids'] = serialize(\get_option('civicrm_event_ids'));
+        $data['last_sync'] = \get_option('civicrm_last_sync');
 
         $t = self::$plugin->m->loadTemplate('admin');
 
