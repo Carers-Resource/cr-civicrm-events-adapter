@@ -72,6 +72,7 @@ class Admin
     {
         check_admin_referer('civi_sync_all', '_wpnonce3');
         self::$plugin::$adapter->sync();
+        \update_option('civicrm_last_sync', \current_time('Y-m-d H:i:s') . ' manual');
         wp_redirect(admin_url('admin.php?page=civi-events'));
         exit;
     }
