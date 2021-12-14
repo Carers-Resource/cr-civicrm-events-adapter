@@ -70,7 +70,7 @@ class Plugin
         return $this;
     }
 
-    public function add_custom_post_type()
+    public static function add_custom_post_type()
     {
         \register_post_type(
             self::$post_type,
@@ -88,7 +88,7 @@ class Plugin
         );
     }
 
-    public function add_meta()
+    public static function add_meta()
     {
         $meta = [
             ['key' => 'event_from', 'type' => 'integer',],
