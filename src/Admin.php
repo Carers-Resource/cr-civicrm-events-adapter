@@ -30,7 +30,7 @@ class Admin
 
     public function civi_events_admin_page()
     {
-        $data = Self::$plugin->data;
+        $data = self::$plugin->data;
         $data['clear_nonce'] = \wp_nonce_field('civi_events_erase_ids', '_wpnonce', true, false);
         $data['save_nonce'] = \wp_nonce_field('civi_save_event', '_wpnonce2', true, false);
         $data['sync_nonce'] = \wp_nonce_field('civi_sync_all', '_wpnonce3', true, false);
@@ -43,7 +43,11 @@ class Admin
         $t = self::$plugin->m->loadTemplate('admin');
 
         echo $t->render($data);
-        $this->civi_events_list();
+
+        if (self::$plugin->data['civi_debug']) {
+
+            $this->civi_events_list();
+        }
     }
 
     public static function civi_events_erase_ids()

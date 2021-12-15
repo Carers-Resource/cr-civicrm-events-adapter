@@ -34,9 +34,10 @@ class Plugin
             'title' => 'CiviCRM Events Adapter',
             'menu_title' => 'CiviCRM Events',
             'menu_slug' => 'civi-events',
-            'user_key' => $_ENV['CIVICRM_USER_KEY'],
-            'site_key' => $_ENV['CIVICRM_SITE_KEY'],
-            'civi_user' => $_ENV['CIVICRM_USER'],
+            'user_key' =>  isset($_ENV['CIVICRM_USER_KEY']) ? $_ENV['CIVICRM_USER_KEY'] : \getenv('CIVICRM_USER_KEY'),
+            'site_key' => isset($_ENV['CIVICRM_SITE_KEY']) ? $_ENV['CIVICRM_SITE_KEY'] : \getenv('CIVICRM_SITE_KEY'),
+            'civi_user' => isset($_ENV['CIVICRM_USER']) ? $_ENV['CIVICRM_USER'] : \getenv('CIVICRM_USER'),
+            'civi_debug' => isset($_ENV['CIVICRM_DEBUG']) ? $_ENV['CIVICRM_DEBUG'] : true,
         ];
 
         \register_activation_hook($fp, [\get_called_class(), 'activate']);
@@ -78,10 +79,11 @@ class Plugin
 
     private function add_dotenv()
     {
-        $this->dotenv = Dotenv::createImmutable(\plugin_dir_path(__DIR__));
-        $this->dotenv->load();
+        $this->dotenv = Dotenv::createImmutable(ABSPATH . '../');
+        $this->dotenv->safeLoad();
         $this->dotenv->ifPresent('USE_CACHE')->isBoolean();
         $this->dotenv->ifPresent('USE_AUTH')->isBoolean();
+        $this->dotenv->ifPresent('CIVICRM_DEBUG')->isBoolean();
         return $this;
     }
 
