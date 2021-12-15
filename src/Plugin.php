@@ -23,8 +23,11 @@ class Plugin
     public static function register($fp)
     {
         self::$plugin = new self();
-        add_option('civicrm_event_ids', []);
-        add_option('civicrm_last_sync');
+        \add_option('civicrm_event_ids', []);
+        \add_option('civicrm_last_sync');
+        \add_option('civicrm_events_total');
+        \add_option('civicrm_events_saved');
+        \add_option('civicrm_events_trashed');
         self::$plugin->add_adapter()->add_dotenv()->add_mustache()->add_admin();
 
         self::$plugin->data = [
@@ -54,6 +57,9 @@ class Plugin
     {
         \delete_option('civicrm_last_sync');
         \delete_option('civicrm_event_ids');
+        \delete_option('civicrm_events_total');
+        \delete_option('civicrm_events_updated');
+        \delete_option('civicrm_events_trashed');
         $timestamp = wp_next_scheduled('civicrm_sync');
         wp_unschedule_event($timestamp, 'civicrm_sync');
     }

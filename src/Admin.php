@@ -36,6 +36,9 @@ class Admin
         $data['sync_nonce'] = \wp_nonce_field('civi_sync_all', '_wpnonce3', true, false);
         $data['stored_ids'] = serialize(\get_option('civicrm_event_ids'));
         $data['last_sync'] = \get_option('civicrm_last_sync');
+        $data['events_total'] = \get_option('civicrm_events_total');
+        $data['events_saved'] = \get_option('civicrm_events_saved');
+        $data['events_trashed'] = \get_option('civicrm_events_trashed');
 
         $t = self::$plugin->m->loadTemplate('admin');
 
@@ -57,6 +60,7 @@ class Admin
         $t = self::$plugin->m->loadTemplate('events_list');
         $data['events'] = self::$plugin::$adapter->get_events();
         echo $t->render($data);
+        echo count($data['events']) . ' events synced';
     }
 
     public function civi_save_event()

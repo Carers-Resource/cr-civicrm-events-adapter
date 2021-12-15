@@ -55,22 +55,28 @@ class Adapter
     {
         $current_ids = $this->ids;
         $new_ids = [];
+        $saved = 0;
+        $trashed = 0;
         foreach ($events as $event) {
             if ((\array_key_exists($event['id'], $current_ids)) && ($current_ids[$event['id']]['md2'] !== 'dirty')) {
                 $new_ids[$event['id']] = $current_ids[$event['id']];
                 continue;
             }
             $new_ids[$event['id']] = $this->save_event($event);
+            $saved++;
         }
 
 
         foreach ($current_ids as $i => $current_id) {
             if (!\array_key_exists($i, $new_ids)) {
-                \wp_trash_post($current_id['wp_id']);
+                $trashed++;
             }
         }
         \update_option('civicrm_event_ids', $new_ids);
         \delete_transient('civi_events');
+        \update_option('civicrm_events_saved', $saved);
+        \update_option('civicrm_events_trashed', $trashed);
+        \update_option('civicrm_events_total', count($events));
     }
 
 
