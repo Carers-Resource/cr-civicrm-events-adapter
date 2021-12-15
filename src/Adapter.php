@@ -69,6 +69,7 @@ class Adapter
 
         foreach ($current_ids as $i => $current_id) {
             if (!\array_key_exists($i, $new_ids)) {
+                \wp_delete_post($current_id['wp_id'], true);
                 $trashed++;
             }
         }
