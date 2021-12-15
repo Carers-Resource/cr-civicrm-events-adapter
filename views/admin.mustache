@@ -1,6 +1,9 @@
 <h1>{{ title }}</h1>
-<p>{{ last_sync }}</p>
-<p>{{ civi_user }}</p>
+<p>Last sync: {{ last_sync }}</p>
+<p>Events checked: {{ events_total }}</p>
+<p>New or updated: {{ events_saved }}</p>
+<p>Deleted: {{ events_trashed }}</p>
+<p>User on CiviCRM: {{ civi_user }}</p>
 {{ ^use_cache }}
 <p>No cache</p>
 {{ /use_cache }}
