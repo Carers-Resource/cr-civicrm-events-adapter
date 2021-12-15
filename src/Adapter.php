@@ -38,7 +38,7 @@ class Adapter
     {
         $response = $this->get_civicrm_events();
 
-        $decoded = json_decode(str_replace('loc_block_id.address_id.', '', $response), true);
+        $decoded = json_decode(str_replace(['loc_block_id.address_id.', 'Copy of '], '', $response), true);
 
         $events = $decoded['values'];
 
@@ -128,21 +128,24 @@ class Adapter
         return $response;
     }
 
-    // Function event_filter currently runs the hash check on each event
-    // but the event list is not modified. Other filters can be added here.
-    private function event_filter($event)
+    private function event_filter($event, $debug)
     {
-        return ($this->check_hash($event));
+        $this->check_hash($event, $debug);
+        return $event;
     }
 
-    private function check_hash($event)
+    private function check_hash(&$event, $debug)
     {
         if ((\array_key_exists($event['id'], $this->ids)) && (\hash("md2", serialize($event)) !== $this->ids[$event['id']]['md2'])) {
             $this->ids[$event['id']]['md2'] = 'dirty';
-            echo $event['id'] . ": " . $this->ids[$event['id']]['md2'] . " ------ wp-id: " . $this->ids[$event['id']]['wp_id']  . "<br/>";
+            if ($debug) {
+                echo $event['id'] . ": " . $this->ids[$event['id']]['md2'] . " ------ wp-id: " . $this->ids[$event['id']]['wp_id']  . "<br/>";
+            }
         };
 
-        echo $event['id'] . " " . \hash("md2", serialize($event)) . " ______ " . $this->ids[$event['id']]['md2'] . " ------ wp-id: " . $this->ids[$event['id']]['wp_id'] . "<br/>";
+        if ($debug) {
+            echo $event['id'] . " " . \hash("md2", serialize($event)) . " ______ " . $this->ids[$event['id']]['md2'] . " ------ wp-id: " . $this->ids[$event['id']]['wp_id'] . "<br/>";
+        }
 
         return true;
     }
