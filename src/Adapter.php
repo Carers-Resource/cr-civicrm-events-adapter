@@ -44,7 +44,11 @@ class Adapter
 
         $this->ids = $this->get_ids();
 
-        return array_values(array_filter($events, [$this, 'event_filter']));
+        foreach ($events as $key => $event) {
+            $events[$key] = $this->event_filter($event, self::$plugin->data['civi_debug']);
+        }
+
+        return array_values($events);
     }
 
     private function save_events($events)
