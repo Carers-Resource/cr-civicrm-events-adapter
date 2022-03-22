@@ -188,7 +188,6 @@ class Adapter
             }
             // If the event has been modified we update
             $post['ID'] = $this->ids[$event['id']]['wp_id'];
-            echo "will update post" . $post['ID'] . "<br/>";
         }
 
         $wp_post_id = \wp_insert_post($post, true);
