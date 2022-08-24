@@ -122,14 +122,15 @@ class Plugin
     public static function add_meta()
     {
         $meta = [
-            ['key' => 'event_from', 'type' => 'integer',],
-            ['key' => 'event_to', 'type' => 'integer',],
-            ['key' => 'event_loc_street', 'type' => 'string',],
-            ['key' => 'event_loc_extra', 'type' => 'string',],
-            ['key' => 'event_loc_town', 'type' => 'string',],
-            ['key' => 'event_loc_postcode', 'type' => 'string',],
-            ['key' => 'latitude', 'type' => 'string',],
-            ['key' => 'longitude', 'type' => 'string',],
+            ['key' => 'event_from', 'type' => 'integer'],
+            ['key' => 'event_to', 'type' => 'integer'],
+            ['key' => 'event_loc_street', 'type' => 'string'],
+            ['key' => 'event_loc_extra', 'type' => 'string'],
+            ['key' => 'event_loc_town', 'type' => 'string'],
+            ['key' => 'event_loc_postcode', 'type' => 'string'],
+            ['key' => 'latitude', 'type' => 'string'],
+            ['key' => 'longitude', 'type' => 'string'],
+            ['key' => 'show_map', 'type' => 'boolean'],
             ['key' => 'event_civicrm_id', 'type' => 'integer',],
             ['key' => 'event_multiday', 'type' => 'boolean']
         ];
