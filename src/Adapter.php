@@ -110,7 +110,7 @@ class Adapter
         $data['from'] = $f->format("Y-m-d");
         $t = $f->add(new DateInterval("P3M"));
         $data['to'] = $t->format("Y-m-d");
-        $data['fields'] = 'id,title,summary,description,start_date,end_date,loc_block_id.id,loc_block_id.address_id.street_address,loc_block_id.address_id.supplemental_address_1,loc_block_id.address_id.supplemental_address_2,loc_block_id.address_id.supplemental_address_3,loc_block_id.address_id.city,loc_block_id.address_id.postal_code,loc_block_id.address_id.geo_code_1,loc_block_id.address_id.geo_code_2';
+        $data['fields'] = 'id,title,summary,description,start_date,end_date,loc_block_id.id,loc_block_id.address_id.street_address,loc_block_id.address_id.supplemental_address_1,loc_block_id.address_id.supplemental_address_2,loc_block_id.address_id.supplemental_address_3,loc_block_id.address_id.city,loc_block_id.address_id.postal_code,loc_block_id.address_id.geo_code_1,loc_block_id.address_id.geo_code_2,is_map';
 
         $tpl = self::$plugin->m->loadTemplate('api_call');
         $json = $tpl->render($data);
@@ -199,6 +199,7 @@ class Adapter
         self::try_update_meta($wp_post_id, 'event_loc_postcode', $event, 'postal_code');
         self::try_update_meta($wp_post_id, 'latitude', $event, 'geo_code_1');
         self::try_update_meta($wp_post_id, 'longitude', $event, 'geo_code_2');
+        \update_post_meta($wp_post_id, 'show_map', $event, 'show_map');
         \update_post_meta($wp_post_id, 'event_civicrm_id', $event['id']);
         \update_post_meta($wp_post_id, 'event_multiday', self::is_multiday($event));
 
