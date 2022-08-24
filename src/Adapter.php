@@ -197,6 +197,8 @@ class Adapter
         self::try_update_meta($wp_post_id, 'event_loc_extra', $event, 'supplemental_address_1');
         self::try_update_meta($wp_post_id, 'event_loc_town', $event, 'city');
         self::try_update_meta($wp_post_id, 'event_loc_postcode', $event, 'postal_code');
+        self::try_update_meta($wp_post_id, 'latitude', $event, 'geo_code_1');
+        self::try_update_meta($wp_post_id, 'longitude', $event, 'geo_code_2');
         \update_post_meta($wp_post_id, 'event_civicrm_id', $event['id']);
         \update_post_meta($wp_post_id, 'event_multiday', self::is_multiday($event));
 
