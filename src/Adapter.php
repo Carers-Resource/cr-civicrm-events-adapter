@@ -110,7 +110,7 @@ class Adapter
         $data['from'] = $f->format("Y-m-d");
         $t = $f->add(new DateInterval("P3M"));
         $data['to'] = $t->format("Y-m-d");
-        $data['fields'] = 'id,title,summary,description,start_date,end_date,loc_block_id.id,loc_block_id.address_id.street_address,loc_block_id.address_id.supplemental_address_1,loc_block_id.address_id.supplemental_address_2,loc_block_id.address_id.supplemental_address_3,loc_block_id.address_id.city,loc_block_id.address_id.postal_code';
+        $data['fields'] = 'id,title,summary,description,start_date,end_date,loc_block_id.id,loc_block_id.address_id.street_address,loc_block_id.address_id.supplemental_address_1,loc_block_id.address_id.supplemental_address_2,loc_block_id.address_id.supplemental_address_3,loc_block_id.address_id.city,loc_block_id.address_id.postal_code,loc_block_id.address_id.geo_code_1,loc_block_id.address_id.geo_code_2';
 
         $tpl = self::$plugin->m->loadTemplate('api_call');
         $json = $tpl->render($data);
