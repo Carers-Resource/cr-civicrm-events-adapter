@@ -28,6 +28,7 @@ class Plugin
         \add_option('civicrm_events_total');
         \add_option('civicrm_events_saved');
         \add_option('civicrm_events_trashed');
+        \add_option('civicrm_events_yp_type_ids', ['2']);
         self::$plugin->add_adapter()->add_dotenv()->add_mustache()->add_admin();
 
         self::$plugin->data = [

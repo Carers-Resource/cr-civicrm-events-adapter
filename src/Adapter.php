@@ -110,7 +110,7 @@ class Adapter
         $data['from'] = $f->format("Y-m-d");
         $t = $f->add(new DateInterval("P3M"));
         $data['to'] = $t->format("Y-m-d");
-        $data['fields'] = 'id,title,summary,description,start_date,end_date,loc_block_id.id,loc_block_id.address_id.street_address,loc_block_id.address_id.supplemental_address_1,loc_block_id.address_id.supplemental_address_2,loc_block_id.address_id.supplemental_address_3,loc_block_id.address_id.city,loc_block_id.address_id.postal_code,loc_block_id.address_id.geo_code_1,loc_block_id.address_id.geo_code_2,is_map';
+        $data['fields'] = 'id,title,summary,description,start_date,end_date,loc_block_id.id,loc_block_id.address_id.street_address,loc_block_id.address_id.supplemental_address_1,loc_block_id.address_id.supplemental_address_2,loc_block_id.address_id.supplemental_address_3,loc_block_id.address_id.city,loc_block_id.address_id.postal_code,loc_block_id.address_id.geo_code_1,loc_block_id.address_id.geo_code_2,is_map,event_type_id';
 
         $tpl = self::$plugin->m->loadTemplate('api_call');
         $json = $tpl->render($data);
@@ -203,6 +203,18 @@ class Adapter
         \update_post_meta($wp_post_id, 'event_civicrm_id', $event['id']);
         \update_post_meta($wp_post_id, 'event_multiday', self::is_multiday($event));
 
+        if (\array_key_exists($event['event_type_id'])) {
+            $civi_event_type_ids = \get_option('civicrm_events_yp_type_ids');
+            $cat_id = \wp_create_category('yp_event'); //wp_create_category returns the ID if category already exists
+            if (\is_wp_error($cat_id)) {
+                echo $cat_id->get_error_message();
+                return;
+            }
+            if (in_array($event['event_type_id'], $civi_event_type_ids)) {
+                \wp_set_post_categories($wp_post_id, $cat_id, true);
+            }
+        }
+
 
         $id = [];
         $id['wp_id'] = $wp_post_id;
@@ -210,7 +222,7 @@ class Adapter
 
         return $id;
     }
-
+ 
     private static function is_multiday($event)
     {
         if ((date('Ymd', strtotime($event['start_date']))) !== date('Ymd', strtotime($event['end_date']))) {
