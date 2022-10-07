@@ -31,7 +31,7 @@ class Admin
     public function civi_events_admin_page()
     {
         $data = self::$plugin->data;
-        $data['clear_nonce'] = \wp_nonce_field('civi_events_erase_ids', '_wpnonce', true, false);
+        $data['force_nonce'] = \wp_nonce_field('civi_events_force_sync', '_wpnonce', true, false);
         $data['save_nonce'] = \wp_nonce_field('civi_save_event', '_wpnonce2', true, false);
         $data['sync_nonce'] = \wp_nonce_field('civi_sync_all', '_wpnonce3', true, false);
         $data['stored_ids'] = serialize(\get_option('civicrm_event_ids'));
@@ -50,11 +50,12 @@ class Admin
         }
     }
 
-    public static function civi_events_erase_ids()
+    public static function civi_events_force_sync()
     {
-        check_admin_referer('civi_events_erase_ids', '_wpnonce');
-        update_option('civicrm_event_ids', []);
-        delete_transient('civicrm_events');
+        check_admin_referer('civi_events_force_sync', '_wpnonce');
+        self::$plugin::$force_sync = true;
+        self::$plugin::$adapter->sync();
+        \update_option('civicrm_last_sync', \current_time('Y-m-d H:i:s') . ' forced');
         wp_redirect(admin_url('admin.php?page=civi-events'));
         exit;
     }

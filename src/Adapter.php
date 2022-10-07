@@ -147,8 +147,9 @@ class Adapter
 
     private function check_hash(&$event, $debug)
     {
-        if ((\array_key_exists($event['id'], $this->ids)) && (\hash("md2", serialize($event)) !== $this->ids[$event['id']]['md2'])) {
+        if ((\array_key_exists($event['id'], $this->ids)) && (self::$plugin::$force_sync  || (\hash("md2", serialize($event)) !== $this->ids[$event['id']]['md2']))) {
             $this->ids[$event['id']]['md2'] = 'dirty';
+            self::$plugin::$force_sync = false;
             if ($debug) {
                 echo $event['id'] . ": " . $this->ids[$event['id']]['md2'] . " ------ wp-id: " . $this->ids[$event['id']]['wp_id']  . "<br/>";
             }

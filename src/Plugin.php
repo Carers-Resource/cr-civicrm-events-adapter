@@ -15,6 +15,7 @@ class Plugin
     public static $events;
     public static $plugin;
     public static $post_type = 'cr-civi-events';
+    public static $force_sync = false;
 
     public function __construct()
     {
@@ -62,6 +63,7 @@ class Plugin
         \delete_option('civicrm_events_total');
         \delete_option('civicrm_events_updated');
         \delete_option('civicrm_events_trashed');
+        \delete_option('civicrm_events_yp_type_ids');
         $timestamp = wp_next_scheduled('civicrm_sync');
         wp_unschedule_event($timestamp, 'civicrm_sync');
     }
@@ -113,7 +115,7 @@ class Plugin
                 'publicly_queryable' => true,
                 'show_in_rest' => true,
                 'supports' => ['title', 'editor', 'thumbnail', 'custom-fields'],
-                'taxonomies' => ['tags'],
+                'taxonomies' => ['category','tags'],
                 'rewrite' => ['slug' => 'groups-and-events'],
                 'has_archive' => 'groups-and-events',
             ]

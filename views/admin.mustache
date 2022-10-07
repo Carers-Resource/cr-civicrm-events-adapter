@@ -3,15 +3,15 @@
 <p>Events checked: {{ events_total }}</p>
 <p>New or updated: {{ events_saved }}</p>
 <p>Deleted: {{ events_trashed }}</p>
-<p>User on CiviCRM: {{ civi_user }}</p>
+<p>User on CiviCRM: {{ civi_user }}</p>
 {{ ^use_cache }}
 <p>No cache</p>
 {{ /use_cache }}
 
 <form action="admin-post.php" method="post">
-    <input type="hidden" name="action" value="civi_events_erase_ids">
-    {{{ clear_nonce }}}
-    <input type="submit" value="Clear IDs">
+    <input type="hidden" name="action" value="civi_events_force_sync">
+    {{{ force_nonce }}}
+    <input type="submit" value="Force re-sync">
 </form>
 <form action="admin-post.php" method="post">
     <input type="hidden" name="action" value="civi_save_event">
