@@ -14,7 +14,7 @@ class Plugin
     public static $admin; // back end
     public static $events;
     public static $plugin;
-    public static $post_type = 'cr-civi-events';
+    public static $post_type = CGIT_EVENTS_POST_TYPE; // Uses the "	Castlegate IT WP ACF Events" plugin post type
 
     public function __construct()
     {
@@ -28,7 +28,6 @@ class Plugin
         \add_option('civicrm_events_total');
         \add_option('civicrm_events_saved');
         \add_option('civicrm_events_trashed');
-        \add_option('civicrm_events_yp_type_ids', ['2']);
         self::$plugin->add_adapter()->add_dotenv()->add_mustache()->add_admin();
 
         self::$plugin->data = [
@@ -104,6 +103,9 @@ class Plugin
 
     public static function add_custom_post_type()
     {
+        // We don't need to register a new post type.
+        return;
+
         \register_post_type(
             self::$post_type,
             [
