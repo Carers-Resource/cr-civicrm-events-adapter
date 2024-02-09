@@ -104,7 +104,7 @@ class Adapter
         $site_key = $_ENV['CIVICRM_SITE_KEY'];
 
         $site = $_ENV['CIVICRM_URL'];
-        $endpoint = '/sites/all/modules/civicrm/extern/rest.php';
+        $endpoint = '/civicrm/ajax/rest';
         $data = [];
         $f = new DateTime();
         $data['from'] = $f->format("Y-m-d");
@@ -222,7 +222,7 @@ class Adapter
 
         return $id;
     }
- 
+
     private static function is_multiday($event)
     {
         if ((date('Ymd', strtotime($event['start_date']))) !== date('Ymd', strtotime($event['end_date']))) {
