@@ -149,13 +149,13 @@ class Adapter
     {
         if ((\array_key_exists($event['id'], $this->ids)) && (\hash("md2", serialize($event)) !== $this->ids[$event['id']]['md2'])) {
             $this->ids[$event['id']]['md2'] = 'dirty';
-            if ($debug) {
+            if ($debug && \array_key_exists('wp_id', $this->ids[$event['id']])) {
                 echo $event['id'] . ": " . $this->ids[$event['id']]['md2'] . " ------ wp-id: " . $this->ids[$event['id']]['wp_id']  . "<br/>";
             }
         };
 
-        if ($debug) {
-            echo $event['id'] . " " . \hash("md2", serialize($event)) . " ______ " . $this->ids[$event['id']]['md2'] . " ------ wp-id: " . $this->ids[$event['id']]['wp_id'] . "<br/>";
+        if ($debug && (\array_key_exists($event['id'], $this->ids))) {
+            echo "** " . $event['id'] . " " . \hash("md2", serialize($event)) . " ______ " . $this->ids[$event['id']]['md2'] . " ------ wp-id: " . $this->ids[$event['id']]['wp_id'] . "<br/>";
         }
 
         return true;
@@ -203,9 +203,13 @@ class Adapter
         \update_post_meta($wp_post_id, 'event_civicrm_id', $event['id']);
         \update_post_meta($wp_post_id, 'event_multiday', self::is_multiday($event));
 
-        if (\array_key_exists($event['event_type_id'])) {
+        if (\array_key_exists('event_type_id', $event)) {
             $civi_event_type_ids = \get_option('civicrm_events_yp_type_ids');
-            $cat_id = \wp_create_category('yp_event'); //wp_create_category returns the ID if category already exists
+            $cat_id = \wp_create_category('yp_event'); //wp_create_category
+                                                       //returns the ID
+                                                       //if category
+                                                       //already exists
+            $adult_cat_id = \wp_create_category('adult_event');
             if (\is_wp_error($cat_id)) {
                 echo $cat_id->get_error_message();
                 return;
