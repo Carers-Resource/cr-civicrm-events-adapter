@@ -300,11 +300,11 @@ class Adapter
         if ($event_type && is_numeric($event_type)) {
             $event_type = intval($event_type);
 
-            if ($event_type === 1 && $adult_carer_category_object && $adult_carer_category_object instanceof \WP_Term) {
-                wp_set_post_terms($wp_post_id, $adult_carer_category_object->term_id, $adult_carer_category_object->taxonomy);
-            } else if ($event_type === 2 && $young_carer_category_object && $young_carer_category_object instanceof \WP_Term) {
+            if ($event_type >= 20 && $young_carer_category_object && $young_carer_category_object instanceof \WP_Term) {
                 wp_set_post_terms($wp_post_id, $young_carer_category_object->term_id, $young_carer_category_object->taxonomy);
-            }
+            } else if ($adult_carer_category_object && $adult_carer_category_object instanceof \WP_Term) {
+                wp_set_post_terms($wp_post_id, $adult_carer_category_object->term_id, $adult_carer_category_object->taxonomy);
+            } 
         } else {
             // If no event type is set/found, then assume it's an adult carer event
             wp_set_post_terms($wp_post_id, $adult_carer_category_object->term_id, $adult_carer_category_object->taxonomy);
