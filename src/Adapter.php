@@ -214,8 +214,14 @@ class Adapter
                 echo $cat_id->get_error_message();
                 return;
             }
-            if (in_array($event['event_type_id'], $civi_event_type_ids)) {
+            $type_val = intval($event['event_type_id']);
+
+            if($type_val >= 20) {
                 \wp_set_post_categories($wp_post_id, $cat_id, true);
+            }
+
+            if($type_val < 20) {
+            \wp_set_post_categories($wp_post_id, $adult_cat_id, true);
             }
         }
 
